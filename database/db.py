@@ -3,12 +3,6 @@ import sqlite3
 DB_NAME = "/tmp/business.db"
 
 
-def get_connection():
-    connection = sqlite3.connect(DB_NAME)
-    create_tables(connection)
-    return connection
-
-
 def create_tables(connection):
     cursor = connection.cursor()
 
@@ -60,26 +54,79 @@ def create_tables(connection):
     connection.commit()
 
 
-def insert_sample_data():
-    connection = get_connection()
+def insert_sample_data(connection):
     cursor = connection.cursor()
 
     customers = [
-        (1, "Rahul Sharma", "rahul@example.com", "Sharma Enterprises", "9876543210"),
-        (2, "Amit Patel", "amit@example.com", "Patel Traders", "9876543211"),
-        (3, "Neha Shah", "neha@example.com", "Shah Industries", "9876543212"),
+        (
+            1,
+            "Rahul Sharma",
+            "rahul@example.com",
+            "Sharma Enterprises",
+            "9876543210"
+        ),
+        (
+            2,
+            "Amit Patel",
+            "amit@example.com",
+            "Patel Traders",
+            "9876543211"
+        ),
+        (
+            3,
+            "Neha Shah",
+            "neha@example.com",
+            "Shah Industries",
+            "9876543212"
+        )
     ]
 
     orders = [
-        (101, 1, "Laptop", 2, 120000, "Delivered"),
-        (102, 1, "Wireless Mouse", 5, 5000, "Shipped"),
-        (103, 2, "Keyboard", 3, 4500, "Processing"),
+        (
+            101,
+            1,
+            "Laptop",
+            2,
+            120000,
+            "Delivered"
+        ),
+        (
+            102,
+            1,
+            "Wireless Mouse",
+            5,
+            5000,
+            "Shipped"
+        ),
+        (
+            103,
+            2,
+            "Keyboard",
+            3,
+            4500,
+            "Processing"
+        )
     ]
 
     inventory = [
-        (1, "Laptop", 25, 60000),
-        (2, "Wireless Mouse", 100, 1000),
-        (3, "Keyboard", 50, 1500),
+        (
+            1,
+            "Laptop",
+            25,
+            60000
+        ),
+        (
+            2,
+            "Wireless Mouse",
+            100,
+            1000
+        ),
+        (
+            3,
+            "Keyboard",
+            50,
+            1500
+        )
     ]
 
     cursor.executemany("""
@@ -101,14 +148,12 @@ def insert_sample_data():
     """, inventory)
 
     connection.commit()
-    connection.close()
 
 
-if __name__ == "__main__":
+def get_connection():
     connection = sqlite3.connect(DB_NAME)
+
     create_tables(connection)
-    connection.close()
+    insert_sample_data(connection)
 
-    insert_sample_data()
-
-    print("Database and sample data created successfully.")
+    return connection
