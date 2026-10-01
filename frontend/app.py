@@ -17,8 +17,7 @@ st.set_page_config(
 # BACKEND CONFIGURATION
 # ==========================================
 
-BACKEND_URL = "BACKEND_URL = "https://ai-business-agent-sm7c.vercel.app""
-
+BACKEND_URL = "https://ai-business-agent-sm7c.vercel.app"
 
 # ==========================================
 # SESSION STATE
