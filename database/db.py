@@ -1,7 +1,7 @@
 import sqlite3
 
 
-DB_NAME = "business.db"
+DB_NAME = "/tmp/business.db"
 
 
 def get_connection():
