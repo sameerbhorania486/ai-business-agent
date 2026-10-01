@@ -5,8 +5,9 @@ DB_NAME = "/tmp/business.db"
 
 
 def get_connection():
-    return sqlite3.connect(DB_NAME)
-
+    connection = sqlite3.connect(DB_NAME)
+    create_tables(connection)
+    return connection
 
 def create_tables():
     connection = get_connection()
