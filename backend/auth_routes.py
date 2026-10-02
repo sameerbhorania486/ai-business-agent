@@ -4,18 +4,19 @@ from pydantic import BaseModel, field_validator
 from database.db import get_connection
 from auth import hash_password, verify_password, create_access_token
 
-
 router = APIRouter()
 
 
 # =========================
-# REQUEST MODELS
+# REGISTER
 # =========================
 
 class RegisterRequest(BaseModel):
     name: str
     email: str
     password: str
+    business_name: str
+    phone: str | None = None
 
     @field_validator("name")
     @classmethod
@@ -53,6 +54,30 @@ class RegisterRequest(BaseModel):
 
         return value
 
+    @field_validator("business_name")
+    @classmethod
+    def validate_business_name(cls, value):
+        value = value.strip()
+
+        if not value:
+            raise ValueError("Business name is required.")
+
+        return value
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, value):
+        if value is None:
+            return value
+
+        value = value.strip()
+
+        return value
+
+
+# =========================
+# LOGIN
+# =========================
 
 class LoginRequest(BaseModel):
     email: str
@@ -60,58 +85,91 @@ class LoginRequest(BaseModel):
 
 
 # =========================
-# REGISTER
+# REGISTER USER + BUSINESS
 # =========================
 
 @router.post("/register")
 def register_user(request: RegisterRequest):
 
-    connection = get_connection()
-    cursor = connection.cursor()
+    supabase = get_connection()
 
-    cursor.execute(
-        """
-        SELECT id
-        FROM users
-        WHERE email = ?
-        """,
-        (request.email,)
+    email = request.email.strip().lower()
+
+    # -------------------------
+    # Check existing user
+    # -------------------------
+
+    response = (
+        supabase
+        .table("users")
+        .select("id")
+        .eq("email", email)
+        .execute()
     )
 
-    existing_user = cursor.fetchone()
-
-    if existing_user:
-
-        connection.close()
-
+    if response.data:
         raise HTTPException(
             status_code=400,
             detail="Email already registered."
         )
 
-    password_hash = hash_password(
-        request.password
+    # -------------------------
+    # Create business
+    # -------------------------
+
+    business_response = (
+        supabase
+        .table("businesses")
+        .insert({
+            "business_name": request.business_name,
+            "owner_name": request.name,
+            "email": email,
+            "phone": request.phone
+        })
+        .execute()
     )
 
-    cursor.execute(
-        """
-        INSERT INTO users
-        (name, email, password_hash)
-        VALUES (?, ?, ?)
-        """,
-        (
-            request.name,
-            request.email,
-            password_hash
+    if not business_response.data:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to create business."
         )
+
+    business = business_response.data[0]
+
+    business_id = business["id"]
+
+    # -------------------------
+    # Create user
+    # -------------------------
+
+    password_hash = hash_password(request.password)
+
+    user_response = (
+        supabase
+        .table("users")
+        .insert({
+            "name": request.name,
+            "email": email,
+            "password_hash": password_hash,
+            "business_id": business_id
+        })
+        .execute()
     )
 
-    connection.commit()
-    connection.close()
+    if not user_response.data:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to create user."
+        )
+
+    user = user_response.data[0]
 
     return {
         "status": "success",
-        "message": "User registered successfully."
+        "message": "Business and user registered successfully.",
+        "user_id": user["id"],
+        "business_id": business_id
     }
 
 
@@ -122,49 +180,49 @@ def register_user(request: RegisterRequest):
 @router.post("/login")
 def login_user(request: LoginRequest):
 
-    connection = get_connection()
-    cursor = connection.cursor()
+    supabase = get_connection()
 
-    cursor.execute(
-        """
-        SELECT
-            id,
-            name,
-            email,
-            password_hash
-        FROM users
-        WHERE email = ?
-        """,
-        (request.email.strip().lower(),)
+    email = request.email.strip().lower()
+
+    response = (
+        supabase
+        .table("users")
+        .select(
+            "id, name, email, password_hash, business_id"
+        )
+        .eq("email", email)
+        .execute()
     )
 
-    user = cursor.fetchone()
+    users = response.data
 
-    connection.close()
-
-    if not user:
-
+    if not users:
         raise HTTPException(
             status_code=401,
             detail="Invalid email or password."
         )
 
-    user_id, name, email, password_hash = user
+    user = users[0]
 
     if not verify_password(
         request.password,
-        password_hash
+        user["password_hash"]
     ):
-
         raise HTTPException(
             status_code=401,
             detail="Invalid email or password."
         )
 
+    if not user.get("business_id"):
+        raise HTTPException(
+            status_code=403,
+            detail="User is not linked to a business."
+        )
+
     token_data = {
-        "user_id": user_id,
-        "email": email,
-        "name": name
+        "user_id": user["id"],
+        "email": user["email"],
+        "name": user["name"]
     }
 
     access_token = create_access_token(

@@ -4,70 +4,109 @@ from database.db import get_connection
 
 
 @tool
-def get_customer_order_summary(customer_name: str) -> str:
+def get_customer_order_summary(
+    customer_name: str,
+    business_id: int
+) -> str:
     """
-    Get a complete order summary for a specific customer.
-    Includes customer details, order count, total quantity, products,
-    order statuses, and total revenue.
+    Get a complete order summary for a specific customer
+    within the authenticated business.
+
+    Includes customer details, order count,
+    total quantity, products, order statuses,
+    and total revenue.
     """
 
-    connection = get_connection()
-    cursor = connection.cursor()
+    supabase = get_connection()
 
-    cursor.execute("""
-        SELECT
-            c.name,
-            c.company,
-            COUNT(o.order_id),
-            COALESCE(SUM(o.quantity), 0),
-            COALESCE(SUM(o.total_amount), 0)
-        FROM customers c
-        LEFT JOIN orders o
-            ON c.id = o.customer_id
-        WHERE c.name LIKE ?
-        GROUP BY c.id, c.name, c.company
-    """, (f"%{customer_name.strip()}%",))
+    # =========================
+    # FIND CUSTOMER
+    # =========================
 
-    customer = cursor.fetchone()
+    customer_response = (
+        supabase
+        .table("customers")
+        .select("id, name, company")
+        .eq("business_id", business_id)
+        .ilike(
+            "name",
+            f"%{customer_name.strip()}%"
+        )
+        .execute()
+    )
 
-    if not customer:
-        connection.close()
+    customers = customer_response.data
+
+    if not customers:
         return "Customer not found."
 
-    cursor.execute("""
-        SELECT
-            o.order_id,
-            o.product,
-            o.quantity,
-            o.total_amount,
-            o.status
-        FROM customers c
-        JOIN orders o
-            ON c.id = o.customer_id
-        WHERE c.name LIKE ?
-        ORDER BY o.order_id
-    """, (f"%{customer_name.strip()}%",))
+    customer = customers[0]
 
-    orders = cursor.fetchall()
+    # =========================
+    # FIND CUSTOMER ORDERS
+    # =========================
 
-    connection.close()
+    order_response = (
+        supabase
+        .table("orders")
+        .select(
+            "order_id, product, quantity, "
+            "total_amount, status"
+        )
+        .eq("customer_id", customer["id"])
+        .eq("business_id", business_id)
+        .order("order_id")
+        .execute()
+    )
+
+    orders = order_response.data
+
+    # =========================
+    # CALCULATE SUMMARY
+    # =========================
+
+    total_orders = len(orders)
+
+    total_quantity = sum(
+        order["quantity"]
+        for order in orders
+    )
+
+    total_revenue = sum(
+        float(order["total_amount"])
+        for order in orders
+    )
 
     summary = {
-        "customer": customer[0],
-        "company": customer[1],
-        "total_orders": customer[2],
-        "total_quantity": customer[3],
-        "total_revenue": f"₹{customer[4]:,.2f}",
+        "customer": customer["name"],
+        "company": customer["company"],
+        "total_orders": total_orders,
+        "total_quantity": total_quantity,
+        "total_revenue": f"₹{total_revenue:,.2f}",
         "orders": []
     }
 
+    # =========================
+    # ORDER DETAILS
+    # =========================
+
     for order in orders:
+
         summary["orders"].append({
-            "order_id": order[0],
-            "product": order[1],
-            "quantity": order[2],
-            "amount": f"₹{order[3]:,.2f}",
-            "status": order[4]
+            "order_id": order["order_id"],
+            "product": order["product"],
+            "quantity": order["quantity"],
+            "amount": f"₹{float(order['total_amount']):,.2f}",
+            "status": order["status"]
         })
 
     return str(summary)
+
+
+if __name__ == "__main__":
+    print(
+        get_customer_order_summary.invoke({
+            "customer_name": "Rahul",
+            "business_id": 1
+        })
+    )

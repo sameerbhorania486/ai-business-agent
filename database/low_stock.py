@@ -4,24 +4,31 @@ from database.db import get_connection
 
 
 @tool
-def check_low_stock(threshold: int = 30) -> str:
+def check_low_stock(
+    threshold: int = 30,
+    business_id: int = 0
+) -> str:
     """
-    Find products whose inventory quantity is at or below the given threshold.
+    Find products whose inventory quantity
+    is at or below the given threshold
+    within the authenticated business.
     """
 
-    connection = get_connection()
-    cursor = connection.cursor()
+    supabase = get_connection()
 
-    cursor.execute("""
-        SELECT product_id, product, quantity, price
-        FROM inventory
-        WHERE quantity <= ?
-        ORDER BY quantity ASC
-    """, (threshold,))
+    response = (
+        supabase
+        .table("inventory")
+        .select(
+            "product_id, product, quantity, price"
+        )
+        .eq("business_id", business_id)
+        .lte("quantity", threshold)
+        .order("quantity")
+        .execute()
+    )
 
-    results = cursor.fetchall()
-
-    connection.close()
+    results = response.data
 
     if not results:
         return "No low-stock products found."
@@ -30,10 +37,19 @@ def check_low_stock(threshold: int = 30) -> str:
 
     for item in results:
         low_stock_products.append({
-            "product_id": item[0],
-            "product": item[1],
-            "quantity": item[2],
-            "price": item[3],
+            "product_id": item["product_id"],
+            "product": item["product"],
+            "quantity": item["quantity"],
+            "price": item["price"],
         })
 
     return str(low_stock_products)
+
+
+if __name__ == "__main__":
+    print(
+        check_low_stock.invoke({
+            "threshold": 30,
+            "business_id": 1
+        })
+    )

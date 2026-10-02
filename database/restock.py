@@ -4,29 +4,33 @@ from database.db import get_connection
 
 
 @tool
-def get_restock_recommendations(threshold: int = 30) -> str:
+def get_restock_recommendations(
+    threshold: int = 30,
+    business_id: int = 0
+) -> str:
     """
-    Identify products that need restocking.
-    Returns current stock, price, and recommended restock quantity.
+    Identify products that need restocking
+    within the authenticated business.
+
+    Returns current stock, price, and
+    recommended restock quantity.
     """
 
-    connection = get_connection()
-    cursor = connection.cursor()
+    supabase = get_connection()
 
-    cursor.execute("""
-        SELECT
-            product_id,
-            product,
-            quantity,
-            price
-        FROM inventory
-        WHERE quantity <= ?
-        ORDER BY quantity ASC
-    """, (threshold,))
+    response = (
+        supabase
+        .table("inventory")
+        .select(
+            "product_id, product, quantity, price"
+        )
+        .eq("business_id", business_id)
+        .lte("quantity", threshold)
+        .order("quantity")
+        .execute()
+    )
 
-    results = cursor.fetchall()
-
-    connection.close()
+    results = response.data
 
     if not results:
         return "No products currently need restocking."
@@ -34,19 +38,31 @@ def get_restock_recommendations(threshold: int = 30) -> str:
     recommendations = []
 
     for item in results:
-        product_id, product, quantity, price = item
 
-        # Target stock level
+        quantity = item["quantity"]
+
         target_stock = 50
 
-        restock_quantity = max(target_stock - quantity, 0)
+        restock_quantity = max(
+            target_stock - quantity,
+            0
+        )
 
         recommendations.append({
-            "product_id": product_id,
-            "product": product,
+            "product_id": item["product_id"],
+            "product": item["product"],
             "current_stock": quantity,
-            "price": f"₹{price:,.2f}",
+            "price": f"₹{float(item['price']):,.2f}",
             "recommended_restock_quantity": restock_quantity,
         })
 
     return str(recommendations)
+
+
+if __name__ == "__main__":
+    print(
+        get_restock_recommendations.invoke({
+            "threshold": 30,
+            "business_id": 1
+        })
+    )

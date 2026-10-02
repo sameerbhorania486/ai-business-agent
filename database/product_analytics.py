@@ -4,36 +4,63 @@ from database.db import get_connection
 
 
 @tool
-def get_product_sales(product: str) -> str:
+def get_product_sales(
+    product: str,
+    business_id: int
+) -> str:
     """
-    Get sales analytics for a specific product.
-    Returns total units sold, number of orders, and total revenue.
+    Get sales analytics for a specific product
+    within the authenticated business.
+
+    Returns total units sold, number of orders,
+    and total revenue.
     """
 
-    connection = get_connection()
-    cursor = connection.cursor()
+    supabase = get_connection()
 
-    cursor.execute("""
-        SELECT
-            o.product,
-            COALESCE(SUM(o.quantity), 0),
-            COUNT(o.order_id),
-            COALESCE(SUM(o.total_amount), 0)
-        FROM orders o
-        WHERE LOWER(o.product) LIKE ?
-        GROUP BY o.product
-    """, (f"%{product.strip().lower()}%",))
+    response = (
+        supabase
+        .table("orders")
+        .select(
+            "product, quantity, total_amount, order_id"
+        )
+        .eq("business_id", business_id)
+        .ilike(
+            "product",
+            f"%{product.strip()}%"
+        )
+        .execute()
+    )
 
-    result = cursor.fetchone()
+    results = response.data
 
-    connection.close()
-
-    if not result:
+    if not results:
         return "Product sales data not found."
 
+    total_units_sold = sum(
+        order["quantity"]
+        for order in results
+    )
+
+    total_orders = len(results)
+
+    total_revenue = sum(
+        float(order["total_amount"])
+        for order in results
+    )
+
     return str({
-        "product": result[0],
-        "total_units_sold": result[1],
-        "total_orders": result[2],
-        "total_revenue": f"₹{result[3]:,.2f}",
+        "product": results[0]["product"],
+        "total_units_sold": total_units_sold,
+        "total_orders": total_orders,
+        "total_revenue": f"₹{total_revenue:,.2f}",
     })
+
+
+if __name__ == "__main__":
+    print(
+        get_product_sales.invoke({
+            "product": "Laptop",
+            "business_id": 1
+        })
+    )

@@ -101,10 +101,11 @@ def create_access_token(data: dict) -> str:
 
 def verify_token(token: str):
     """
-    Verify JWT token and return its payload.
+    Verify JWT token and return
+    its payload.
 
-    Returns None if the token is invalid
-    or expired.
+    Returns None if the token is
+    invalid or expired.
     """
 
     try:
@@ -120,3 +121,30 @@ def verify_token(token: str):
     except JWTError:
 
         return None
+
+
+# =========================
+# GET CURRENT USER
+# =========================
+
+def get_current_user(token: str):
+    """
+    Verify JWT token and return
+    the authenticated user's information.
+    """
+
+    payload = verify_token(token)
+
+    if not payload:
+        return None
+
+    user_id = payload.get("user_id")
+
+    if not user_id:
+        return None
+
+    return {
+        "user_id": user_id,
+        "email": payload.get("email"),
+        "name": payload.get("name")
+    }
