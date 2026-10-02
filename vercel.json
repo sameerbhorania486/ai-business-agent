@@ -1,3 +1,4 @@
+```json
 {
   "builds": [
     {
@@ -11,8 +12,5 @@
       "dest": "backend/main.py"
     }
   ]
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> a40d88b (production backend update)
+```
