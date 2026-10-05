@@ -18,7 +18,9 @@ st.set_page_config(
 # BACKEND CONFIGURATION
 # =========================================================
 
-BACKEND_URL = "https://ai-business-agent-sm7c.vercel.app"
+BACKEND_URL = (
+    "https://ai-business-agent-iga7qjvqc-sameerbhorania486.vercel.app"
+)
 
 
 # =========================================================
@@ -60,19 +62,31 @@ def api_headers():
 
 def handle_api_error(response, default_message):
 
-    if response.status_code == 401:
-        return "Authentication failed. Please log out and log in again."
-
     try:
-        detail = response.json().get(
+
+        data = response.json()
+
+        detail = data.get(
             "detail",
-            default_message
+            data.get(
+                "message",
+                default_message
+            )
         )
 
-        return str(detail)
+        return (
+            f"API Error | Status: "
+            f"{response.status_code}\n\n"
+            f"{detail}"
+        )
 
     except Exception:
-        return default_message
+
+        return (
+            f"API Error | Status: "
+            f"{response.status_code}\n\n"
+            f"{response.text or default_message}"
+        )
 
 
 # =========================================================
@@ -83,19 +97,61 @@ def login_user(email, password):
 
     try:
 
+        clean_email = email.strip().lower()
+
         response = requests.post(
             f"{BACKEND_URL}/login",
             json={
-                "email": email,
+                "email": clean_email,
                 "password": password
+            },
+            headers={
+                "Content-Type": "application/json"
             },
             timeout=30
         )
 
+        # -------------------------------------------------
+        # LOGIN SUCCESS
+        # -------------------------------------------------
+
         if response.status_code == 200:
-            return response.json()
+
+            data = response.json()
+
+            access_token = data.get(
+                "access_token"
+            )
+
+            if not access_token:
+
+                return {
+                    "success": False,
+                    "error": (
+                        "Login response did not contain "
+                        "an access token."
+                    )
+                }
+
+            return {
+                "success": True,
+                "access_token": access_token,
+                "token_type": data.get(
+                    "token_type",
+                    "bearer"
+                ),
+                "message": data.get(
+                    "message",
+                    "Login successful."
+                )
+            }
+
+        # -------------------------------------------------
+        # LOGIN FAILED
+        # -------------------------------------------------
 
         return {
+            "success": False,
             "error": handle_api_error(
                 response,
                 "Login failed."
@@ -105,7 +161,21 @@ def login_user(email, password):
     except requests.exceptions.RequestException as e:
 
         return {
-            "error": f"Unable to connect to backend: {e}"
+            "success": False,
+            "error": (
+                "Unable to connect to backend: "
+                f"{e}"
+            )
+        }
+
+    except Exception as e:
+
+        return {
+            "success": False,
+            "error": (
+                "Unexpected login error: "
+                f"{e}"
+            )
         }
 
 
@@ -122,16 +192,20 @@ def register_user(
         response = requests.post(
             f"{BACKEND_URL}/register",
             json={
-                "name": name,
-                "email": email,
+                "name": name.strip(),
+                "email": email.strip().lower(),
                 "password": password,
-                "business_name": business_name,
-                "phone": phone
+                "business_name": business_name.strip(),
+                "phone": phone.strip()
+            },
+            headers={
+                "Content-Type": "application/json"
             },
             timeout=30
         )
 
         if response.status_code in [200, 201]:
+
             return response.json()
 
         return {
@@ -144,7 +218,10 @@ def register_user(
     except requests.exceptions.RequestException as e:
 
         return {
-            "error": f"Unable to connect to backend: {e}"
+            "error": (
+                "Unable to connect to backend: "
+                f"{e}"
+            )
         }
 
 
@@ -166,7 +243,10 @@ def get_dashboard():
             return response.json()
 
         st.error(
-            f"Dashboard API Error: {response.status_code}"
+            handle_api_error(
+                response,
+                "Unable to load dashboard."
+            )
         )
 
         return None
@@ -198,7 +278,10 @@ def get_orders():
             )
 
         st.error(
-            f"Orders API Error: {response.status_code}"
+            handle_api_error(
+                response,
+                "Unable to load orders."
+            )
         )
 
         return []
@@ -230,7 +313,10 @@ def get_inventory():
             )
 
         st.error(
-            f"Inventory API Error: {response.status_code}"
+            handle_api_error(
+                response,
+                "Unable to load inventory."
+            )
         )
 
         return []
@@ -262,7 +348,10 @@ def get_dashboard_customers():
             )
 
         st.error(
-            f"Customers API Error: {response.status_code}"
+            handle_api_error(
+                response,
+                "Unable to load customers."
+            )
         )
 
         return []
@@ -309,7 +398,10 @@ def inventory_get_all():
 
         return {
             "success": False,
-            "error": f"Unable to connect to backend: {e}"
+            "error": (
+                "Unable to connect to backend: "
+                f"{e}"
+            )
         }
 
 
@@ -345,7 +437,10 @@ def inventory_search(product):
 
         return {
             "success": False,
-            "error": f"Unable to connect to backend: {e}"
+            "error": (
+                "Unable to connect to backend: "
+                f"{e}"
+            )
         }
 
 
@@ -395,7 +490,10 @@ def inventory_create(
 
         return {
             "success": False,
-            "error": f"Unable to connect to backend: {e}"
+            "error": (
+                "Unable to connect to backend: "
+                f"{e}"
+            )
         }
 
 
@@ -441,7 +539,10 @@ def inventory_update(
 
         return {
             "success": False,
-            "error": f"Unable to connect to backend: {e}"
+            "error": (
+                "Unable to connect to backend: "
+                f"{e}"
+            )
         }
 
 
@@ -479,7 +580,10 @@ def inventory_delete(product_id):
 
         return {
             "success": False,
-            "error": f"Unable to connect to backend: {e}"
+            "error": (
+                "Unable to connect to backend: "
+                f"{e}"
+            )
         }
 
 
@@ -512,7 +616,10 @@ def inventory_low_stock():
 
         return {
             "success": False,
-            "error": f"Unable to connect to backend: {e}"
+            "error": (
+                "Unable to connect to backend: "
+                f"{e}"
+            )
         }
 
 
@@ -549,7 +656,10 @@ def get_customers():
 
         return {
             "success": False,
-            "error": f"Unable to connect to backend: {e}"
+            "error": (
+                "Unable to connect to backend: "
+                f"{e}"
+            )
         }
 
 
@@ -585,7 +695,10 @@ def search_customers(name):
 
         return {
             "success": False,
-            "error": f"Unable to connect to backend: {e}"
+            "error": (
+                "Unable to connect to backend: "
+                f"{e}"
+            )
         }
 
 
@@ -634,7 +747,10 @@ def add_customer(
 
         return {
             "success": False,
-            "error": f"Unable to connect to backend: {e}"
+            "error": (
+                "Unable to connect to backend: "
+                f"{e}"
+            )
         }
 
 
@@ -682,7 +798,10 @@ def update_customer(
 
         return {
             "success": False,
-            "error": f"Unable to connect to backend: {e}"
+            "error": (
+                "Unable to connect to backend: "
+                f"{e}"
+            )
         }
 
 
@@ -720,7 +839,10 @@ def delete_customer(customer_id):
 
         return {
             "success": False,
-            "error": f"Unable to connect to backend: {e}"
+            "error": (
+                "Unable to connect to backend: "
+                f"{e}"
+            )
         }
 
 
@@ -757,7 +879,10 @@ def get_all_orders():
 
         return {
             "success": False,
-            "error": f"Unable to connect to backend: {e}"
+            "error": (
+                "Unable to connect to backend: "
+                f"{e}"
+            )
         }
 
 
@@ -808,7 +933,10 @@ def create_order(
 
         return {
             "success": False,
-            "error": f"Unable to connect to backend: {e}"
+            "error": (
+                "Unable to connect to backend: "
+                f"{e}"
+            )
         }
 
 
@@ -852,7 +980,10 @@ def update_order_status(
 
         return {
             "success": False,
-            "error": f"Unable to connect to backend: {e}"
+            "error": (
+                "Unable to connect to backend: "
+                f"{e}"
+            )
         }
 
 
@@ -890,7 +1021,10 @@ def delete_order(order_id):
 
         return {
             "success": False,
-            "error": f"Unable to connect to backend: {e}"
+            "error": (
+                "Unable to connect to backend: "
+                f"{e}"
+            )
         }
 
 
@@ -930,7 +1064,8 @@ def send_chat(message):
     except requests.exceptions.RequestException as e:
 
         return (
-            f"Unable to connect to AI backend: {e}"
+            "Unable to connect to AI backend: "
+            f"{e}"
         )
 
 
@@ -961,9 +1096,7 @@ if not st.session_state.token:
 
     with login_tab:
 
-        st.subheader(
-            "Welcome back"
-        )
+        st.subheader("Welcome back")
 
         st.write(
             "Sign in to access your business workspace."
@@ -988,7 +1121,7 @@ if not st.session_state.token:
             width="stretch"
         ):
 
-            if not email or not password:
+            if not email.strip() or not password:
 
                 st.warning(
                     "Please enter your email and password."
@@ -996,72 +1129,46 @@ if not st.session_state.token:
 
             else:
 
-                with st.spinner(
-                    "Signing in..."
-                ):
+                with st.spinner("Signing in..."):
 
                     result = login_user(
                         email,
                         password
                     )
 
-                if result and result.get(
-                    "access_token"
+                # -------------------------------------------------
+                # LOGIN SUCCESS
+                # -------------------------------------------------
+
+                if (
+                    result
+                    and result.get("success")
+                    and result.get("access_token")
                 ):
 
-                    st.session_state.token = (
-                        result["access_token"]
-                    )
+                    token = result["access_token"]
 
-                    st.session_state.user_email = email
+                    st.session_state.token = token
+
+                    st.session_state.user_email = (
+                        email.strip().lower()
+                    )
 
                     st.session_state.user_name = (
                         email.split("@")[0].title()
                     )
 
-                    try:
+                    st.session_state.page = "Dashboard"
 
-                        verify_response = requests.get(
-                            f"{BACKEND_URL}/dashboard",
-                            headers={
-                                "Authorization":
-                                f"Bearer "
-                                f"{st.session_state.token}"
-                            },
-                            timeout=30
-                        )
+                    st.success(
+                        "Login successful."
+                    )
 
-                        if verify_response.status_code == 200:
+                    st.rerun()
 
-                            st.success(
-                                "Login successful."
-                            )
-
-                            st.rerun()
-
-                        else:
-
-                            st.session_state.token = None
-
-                            st.error(
-                                "Login succeeded, but "
-                                "dashboard authentication failed."
-                            )
-
-                            st.code(
-                                f"Status: "
-                                f"{verify_response.status_code}\n\n"
-                                f"Response:\n"
-                                f"{verify_response.text}"
-                            )
-
-                    except requests.exceptions.RequestException as e:
-
-                        st.session_state.token = None
-
-                        st.error(
-                            f"Unable to verify login: {e}"
-                        )
+                # -------------------------------------------------
+                # LOGIN FAILED
+                # -------------------------------------------------
 
                 else:
 
@@ -1123,19 +1230,19 @@ if not st.session_state.token:
             width="stretch"
         ):
 
-            if not name:
+            if not name.strip():
 
                 st.warning(
                     "Please enter owner name."
                 )
 
-            elif not business_name:
+            elif not business_name.strip():
 
                 st.warning(
                     "Please enter business name."
                 )
 
-            elif not register_email:
+            elif not register_email.strip():
 
                 st.warning(
                     "Please enter email."
@@ -1161,8 +1268,9 @@ if not st.session_state.token:
                         phone
                     )
 
-                if result and not result.get(
-                    "error"
+                if (
+                    result
+                    and not result.get("error")
                 ):
 
                     st.success(
@@ -1197,13 +1305,9 @@ if not st.session_state.token:
 
 with st.sidebar:
 
-    st.title(
-        "🤖 AI Business Agent"
-    )
+    st.title("🤖 AI Business Agent")
 
-    st.caption(
-        "Business workspace"
-    )
+    st.caption("Business workspace")
 
     st.divider()
 
@@ -1257,9 +1361,7 @@ with st.sidebar:
 
     st.divider()
 
-    st.caption(
-        "Signed in as"
-    )
+    st.caption("Signed in as")
 
     st.write(
         f"**{st.session_state.user_name}**"
@@ -1288,9 +1390,7 @@ with st.sidebar:
 
 if st.session_state.page == "Dashboard":
 
-    st.title(
-        "Dashboard"
-    )
+    st.title("Dashboard")
 
     st.caption(
         "Your business at a glance."
@@ -1306,10 +1406,7 @@ if st.session_state.page == "Dashboard":
         {}
     )
 
-    if isinstance(
-        user_data,
-        dict
-    ):
+    if isinstance(user_data, dict):
 
         st.session_state.user_name = user_data.get(
             "name",
@@ -1321,10 +1418,7 @@ if st.session_state.page == "Dashboard":
             st.session_state.user_email
         )
 
-    elif isinstance(
-        user_data,
-        str
-    ):
+    elif isinstance(user_data, str):
 
         st.session_state.user_name = user_data
 
@@ -1367,35 +1461,30 @@ if st.session_state.page == "Dashboard":
     col1, col2, col3, col4, col5 = st.columns(5)
 
     with col1:
-
         st.metric(
             "Customers",
             total_customers
         )
 
     with col2:
-
         st.metric(
             "Orders",
             total_orders
         )
 
     with col3:
-
         st.metric(
             "Revenue",
             f"₹{float(total_revenue):,.2f}"
         )
 
     with col4:
-
         st.metric(
             "Low Stock",
             low_stock
         )
 
     with col5:
-
         st.metric(
             "Inventory",
             total_inventory
@@ -1407,9 +1496,7 @@ if st.session_state.page == "Dashboard":
 
     with inventory_col:
 
-        st.subheader(
-            "Inventory"
-        )
+        st.subheader("Inventory")
 
         inventory = get_inventory()
 
@@ -1458,9 +1545,7 @@ if st.session_state.page == "Dashboard":
 
     with orders_col:
 
-        st.subheader(
-            "Recent Orders"
-        )
+        st.subheader("Recent Orders")
 
         orders = get_orders()
 
@@ -1509,9 +1594,7 @@ if st.session_state.page == "Dashboard":
 
     st.divider()
 
-    st.subheader(
-        "Customers"
-    )
+    st.subheader("Customers")
 
     customers = get_dashboard_customers()
 
@@ -1565,9 +1648,7 @@ if st.session_state.page == "Dashboard":
 
 elif st.session_state.page == "Customers":
 
-    st.title(
-        "Customers"
-    )
+    st.title("Customers")
 
     st.caption(
         "Manage your business customers."
@@ -1608,9 +1689,7 @@ elif st.session_state.page == "Customers":
 
         customer_result = get_customers()
 
-    if not customer_result.get(
-        "success"
-    ):
+    if not customer_result.get("success"):
 
         st.error(
             customer_result.get(
@@ -1638,9 +1717,7 @@ elif st.session_state.page == "Customers":
         expanded=False
     ):
 
-        st.subheader(
-            "Customer Details"
-        )
+        st.subheader("Customer Details")
 
         add_col1, add_col2 = st.columns(2)
 
@@ -1697,9 +1774,7 @@ elif st.session_state.page == "Customers":
                         new_phone
                     )
 
-                if result.get(
-                    "success"
-                ):
+                if result.get("success"):
 
                     st.success(
                         result.get(
@@ -1721,9 +1796,7 @@ elif st.session_state.page == "Customers":
 
     st.divider()
 
-    st.subheader(
-        "Customer Directory"
-    )
+    st.subheader("Customer Directory")
 
     if not customers:
 
@@ -1735,9 +1808,7 @@ elif st.session_state.page == "Customers":
 
         for customer in customers:
 
-            customer_id = customer.get(
-                "id"
-            )
+            customer_id = customer.get("id")
 
             name = customer.get(
                 "name",
@@ -1814,9 +1885,7 @@ elif st.session_state.page == "Customers":
                                 edit_phone
                             )
 
-                        if result.get(
-                            "success"
-                        ):
+                        if result.get("success"):
 
                             st.success(
                                 result.get(
@@ -1852,9 +1921,7 @@ elif st.session_state.page == "Customers":
                                 customer_id
                             )
 
-                        if result.get(
-                            "success"
-                        ):
+                        if result.get("success"):
 
                             st.success(
                                 result.get(
@@ -1881,9 +1948,7 @@ elif st.session_state.page == "Customers":
 
 elif st.session_state.page == "Orders":
 
-    st.title(
-        "Orders"
-    )
+    st.title("Orders")
 
     st.caption(
         "Create and manage your business orders."
@@ -1909,9 +1974,7 @@ elif st.session_state.page == "Orders":
 
     orders_result = get_all_orders()
 
-    if not orders_result.get(
-        "success"
-    ):
+    if not orders_result.get("success"):
 
         st.error(
             orders_result.get(
@@ -1927,20 +1990,14 @@ elif st.session_state.page == "Orders":
         {}
     )
 
-    if isinstance(
-        orders_data,
-        dict
-    ):
+    if isinstance(orders_data, dict):
 
         orders = orders_data.get(
             "orders",
             []
         )
 
-    elif isinstance(
-        orders_data,
-        list
-    ):
+    elif isinstance(orders_data, list):
 
         orders = orders_data
 
@@ -1951,49 +2008,58 @@ elif st.session_state.page == "Orders":
     total_orders_count = len(orders)
 
     total_order_revenue = sum(
-        float(order.get("total_amount", 0))
+        float(
+            order.get(
+                "total_amount",
+                0
+            )
+        )
         for order in orders
     )
 
     pending_orders = sum(
         1
         for order in orders
-        if str(order.get("status", "")).lower()
-        == "pending"
+        if str(
+            order.get(
+                "status",
+                ""
+            )
+        ).lower() == "pending"
     )
 
     delivered_orders = sum(
         1
         for order in orders
-        if str(order.get("status", "")).lower()
-        == "delivered"
+        if str(
+            order.get(
+                "status",
+                ""
+            )
+        ).lower() == "delivered"
     )
 
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-
         st.metric(
             "Total Orders",
             total_orders_count
         )
 
     with col2:
-
         st.metric(
             "Order Value",
             f"₹{total_order_revenue:,.2f}"
         )
 
     with col3:
-
         st.metric(
             "Pending",
             pending_orders
         )
 
     with col4:
-
         st.metric(
             "Delivered",
             delivered_orders
@@ -2006,15 +2072,11 @@ elif st.session_state.page == "Orders":
         expanded=False
     ):
 
-        st.subheader(
-            "Order Details"
-        )
+        st.subheader("Order Details")
 
         customer_result = get_customers()
 
-        if not customer_result.get(
-            "success"
-        ):
+        if not customer_result.get("success"):
 
             st.error(
                 customer_result.get(
@@ -2025,15 +2087,18 @@ elif st.session_state.page == "Orders":
 
         else:
 
-            customers_for_order = customer_result.get(
-                "data",
-                []
+            customers_for_order = (
+                customer_result.get(
+                    "data",
+                    []
+                )
             )
 
             if not customers_for_order:
 
                 st.warning(
-                    "Please add a customer before creating an order."
+                    "Please add a customer before "
+                    "creating an order."
                 )
 
             else:
@@ -2042,9 +2107,7 @@ elif st.session_state.page == "Orders":
 
                 for customer in customers_for_order:
 
-                    customer_id = customer.get(
-                        "id"
-                    )
+                    customer_id = customer.get("id")
 
                     customer_name = customer.get(
                         "name",
@@ -2132,9 +2195,11 @@ elif st.session_state.page == "Orders":
 
                     else:
 
-                        selected_customer_id = customer_options[
-                            selected_customer
-                        ]
+                        selected_customer_id = (
+                            customer_options[
+                                selected_customer
+                            ]
+                        )
 
                         with st.spinner(
                             "Creating order..."
@@ -2148,9 +2213,7 @@ elif st.session_state.page == "Orders":
                                 order_status
                             )
 
-                        if result.get(
-                            "success"
-                        ):
+                        if result.get("success"):
 
                             st.success(
                                 result.get(
@@ -2172,9 +2235,7 @@ elif st.session_state.page == "Orders":
 
     st.divider()
 
-    st.subheader(
-        "Order Directory"
-    )
+    st.subheader("Order Directory")
 
     if not orders:
 
@@ -2264,7 +2325,9 @@ elif st.session_state.page == "Orders":
                 with update_col1:
 
                     current_index = (
-                        status_options.index(current_status)
+                        status_options.index(
+                            current_status
+                        )
                         if current_status in status_options
                         else 0
                     )
@@ -2296,9 +2359,7 @@ elif st.session_state.page == "Orders":
                                 new_status
                             )
 
-                        if result.get(
-                            "success"
-                        ):
+                        if result.get("success"):
 
                             st.success(
                                 result.get(
@@ -2334,9 +2395,7 @@ elif st.session_state.page == "Orders":
                             order_id
                         )
 
-                    if result.get(
-                        "success"
-                    ):
+                    if result.get("success"):
 
                         st.success(
                             result.get(
@@ -2363,9 +2422,7 @@ elif st.session_state.page == "Orders":
 
 elif st.session_state.page == "Inventory":
 
-    st.title(
-        "Inventory Management"
-    )
+    st.title("Inventory Management")
 
     st.caption(
         "Manage your products, stock quantities and prices."
@@ -2375,9 +2432,7 @@ elif st.session_state.page == "Inventory":
 
     inventory_result = inventory_get_all()
 
-    if not inventory_result.get(
-        "success"
-    ):
+    if not inventory_result.get("success"):
 
         st.error(
             inventory_result.get(
@@ -2401,34 +2456,41 @@ elif st.session_state.page == "Inventory":
     total_products = len(inventory)
 
     total_units = sum(
-        int(item.get("quantity", 0))
+        int(
+            item.get(
+                "quantity",
+                0
+            )
+        )
         for item in inventory
     )
 
     low_stock_count = sum(
         1
         for item in inventory
-        if int(item.get("quantity", 0)) <= 30
+        if int(
+            item.get(
+                "quantity",
+                0
+            )
+        ) <= 30
     )
 
     col1, col2, col3 = st.columns(3)
 
     with col1:
-
         st.metric(
             "Total Products",
             total_products
         )
 
     with col2:
-
         st.metric(
             "Total Units",
             total_units
         )
 
     with col3:
-
         st.metric(
             "Low Stock Products",
             low_stock_count
@@ -2466,9 +2528,7 @@ elif st.session_state.page == "Inventory":
             inventory_search_text.strip()
         )
 
-        if search_result.get(
-            "success"
-        ):
+        if search_result.get("success"):
 
             display_data = search_result.get(
                 "data",
@@ -2500,11 +2560,11 @@ elif st.session_state.page == "Inventory":
         expanded=False
     ):
 
-        st.subheader(
-            "Product Details"
-        )
+        st.subheader("Product Details")
 
-        add_inventory_col1, add_inventory_col2 = st.columns(2)
+        add_inventory_col1, add_inventory_col2 = (
+            st.columns(2)
+        )
 
         with add_inventory_col1:
 
@@ -2559,9 +2619,7 @@ elif st.session_state.page == "Inventory":
                         float(new_price)
                     )
 
-                if result.get(
-                    "success"
-                ):
+                if result.get("success"):
 
                     st.success(
                         result.get(
@@ -2590,9 +2648,7 @@ elif st.session_state.page == "Inventory":
 
         low_stock_result = inventory_low_stock()
 
-        if not low_stock_result.get(
-            "success"
-        ):
+        if not low_stock_result.get("success"):
 
             st.error(
                 low_stock_result.get(
@@ -2608,9 +2664,11 @@ elif st.session_state.page == "Inventory":
                 {}
             )
 
-            low_stock_inventory = low_stock_data.get(
-                "inventory",
-                []
+            low_stock_inventory = (
+                low_stock_data.get(
+                    "inventory",
+                    []
+                )
             )
 
             if low_stock_inventory:
@@ -2654,9 +2712,7 @@ elif st.session_state.page == "Inventory":
 
     st.divider()
 
-    st.subheader(
-        "Product Directory"
-    )
+    st.subheader("Product Directory")
 
     if not display_inventory:
 
@@ -2716,7 +2772,10 @@ elif st.session_state.page == "Inventory":
                         min_value=0,
                         value=quantity,
                         step=1,
-                        key=f"inventory_quantity_{product_id}"
+                        key=(
+                            f"inventory_quantity_"
+                            f"{product_id}"
+                        )
                     )
 
                 with edit_col2:
@@ -2726,7 +2785,10 @@ elif st.session_state.page == "Inventory":
                         min_value=0.0,
                         value=price,
                         step=100.0,
-                        key=f"inventory_price_{product_id}"
+                        key=(
+                            f"inventory_price_"
+                            f"{product_id}"
+                        )
                     )
 
                 st.write(
@@ -2739,7 +2801,10 @@ elif st.session_state.page == "Inventory":
 
                     if st.button(
                         "Save Changes",
-                        key=f"inventory_save_{product_id}",
+                        key=(
+                            f"inventory_save_"
+                            f"{product_id}"
+                        ),
                         type="primary",
                         width="stretch"
                     ):
@@ -2754,9 +2819,7 @@ elif st.session_state.page == "Inventory":
                                 float(edit_price)
                             )
 
-                        if result.get(
-                            "success"
-                        ):
+                        if result.get("success"):
 
                             st.success(
                                 result.get(
@@ -2780,7 +2843,10 @@ elif st.session_state.page == "Inventory":
 
                     if st.button(
                         "Delete Product",
-                        key=f"inventory_delete_{product_id}",
+                        key=(
+                            f"inventory_delete_"
+                            f"{product_id}"
+                        ),
                         width="stretch"
                     ):
 
@@ -2792,9 +2858,7 @@ elif st.session_state.page == "Inventory":
                                 product_id
                             )
 
-                        if result.get(
-                            "success"
-                        ):
+                        if result.get("success"):
 
                             st.success(
                                 result.get(
@@ -2821,9 +2885,7 @@ elif st.session_state.page == "Inventory":
 
 elif st.session_state.page == "Business Chat":
 
-    st.title(
-        "Business Chat"
-    )
+    st.title("Business Chat")
 
     st.caption(
         "Ask questions about your business data."
@@ -2894,29 +2956,17 @@ elif st.session_state.page == "Business Chat":
             }
         )
 
-        with st.chat_message(
-            "user"
-        ):
+        with st.chat_message("user"):
 
-            st.write(
-                message
-            )
+            st.write(message)
 
-        with st.chat_message(
-            "assistant"
-        ):
+        with st.chat_message("assistant"):
 
-            with st.spinner(
-                "Thinking..."
-            ):
+            with st.spinner("Thinking..."):
 
-                answer = send_chat(
-                    message
-                )
+                answer = send_chat(message)
 
-            st.write(
-                answer
-            )
+            st.write(answer)
 
         st.session_state.chat_history.append(
             {
@@ -2932,9 +2982,7 @@ elif st.session_state.page == "Business Chat":
 
 elif st.session_state.page == "Settings":
 
-    st.title(
-        "Settings"
-    )
+    st.title("Settings")
 
     st.caption(
         "Manage your account and application information."
@@ -2942,9 +2990,7 @@ elif st.session_state.page == "Settings":
 
     st.divider()
 
-    st.subheader(
-        "Account"
-    )
+    st.subheader("Account")
 
     col1, col2 = st.columns(2)
 
@@ -2966,9 +3012,7 @@ elif st.session_state.page == "Settings":
 
     st.divider()
 
-    st.subheader(
-        "AI Capabilities"
-    )
+    st.subheader("AI Capabilities")
 
     capabilities = [
         "Customer management",
@@ -2990,9 +3034,7 @@ elif st.session_state.page == "Settings":
 
     st.divider()
 
-    st.subheader(
-        "Security"
-    )
+    st.subheader("Security")
 
     col1, col2 = st.columns(2)
 
@@ -3010,9 +3052,7 @@ elif st.session_state.page == "Settings":
 
     st.divider()
 
-    st.subheader(
-        "Technology"
-    )
+    st.subheader("Technology")
 
     st.write(
         "**Frontend:** Streamlit"
