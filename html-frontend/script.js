@@ -1,5 +1,5 @@
 const BACKEND_URL =
-    "https://ai-business-agent-iga7qjvqc-sameerbhorania486.vercel.app";
+    "https://ai-business-agent-eq5b-37myy2jomv-sameerbhorania486.vercel.app";
 
 
 // =========================================================
