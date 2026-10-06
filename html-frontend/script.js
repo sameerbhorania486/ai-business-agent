@@ -25,17 +25,21 @@ function showLogin() {
         document.getElementById("registerTab");
 
 
-    if (loginSection) {
+    if (!loginSection || !registerSection) {
 
-        loginSection.classList.remove("hidden");
+        console.error(
+            "Login/Register sections not found."
+        );
 
-    }
-
-    if (registerSection) {
-
-        registerSection.classList.add("hidden");
+        return;
 
     }
+
+
+    loginSection.classList.remove("hidden");
+
+    registerSection.classList.add("hidden");
+
 
     if (loginTab) {
 
@@ -43,11 +47,13 @@ function showLogin() {
 
     }
 
+
     if (registerTab) {
 
         registerTab.classList.remove("active");
 
     }
+
 }
 
 
@@ -66,17 +72,21 @@ function showRegister() {
         document.getElementById("registerTab");
 
 
-    if (registerSection) {
+    if (!loginSection || !registerSection) {
 
-        registerSection.classList.remove("hidden");
+        console.error(
+            "Login/Register sections not found."
+        );
 
-    }
-
-    if (loginSection) {
-
-        loginSection.classList.add("hidden");
+        return;
 
     }
+
+
+    registerSection.classList.remove("hidden");
+
+    loginSection.classList.add("hidden");
+
 
     if (registerTab) {
 
@@ -84,13 +94,14 @@ function showRegister() {
 
     }
 
+
     if (loginTab) {
 
         loginTab.classList.remove("active");
 
     }
-}
 
+}
 
 // =========================================================
 // API ERROR HANDLER
