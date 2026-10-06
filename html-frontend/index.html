@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Business Agent</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="auth-container">
+
+        <div class="brand">
+            <div class="brand-icon">🤖</div>
+
+            <h1>AI Business Agent</h1>
+
+            <p>
+                Intelligent business management powered by AI
+            </p>
+        </div>
+
+
+        <div class="auth-card">
+
+            <div class="tabs">
+
+                <button
+                    class="tab active"
+                    onclick="showLogin()"
+                    id="loginTab"
+                >
+                    Login
+                </button>
+
+                <button
+                    class="tab"
+                    onclick="showRegister()"
+                    id="registerTab"
+                >
+                    Create Account
+                </button>
+
+            </div>
+
+
+            <!-- LOGIN -->
+
+            <div
+                class="form-section"
+                id="loginForm"
+            >
+
+                <h2>Welcome back</h2>
+
+                <p class="form-description">
+                    Sign in to access your business workspace.
+                </p>
+
+
+                <label for="loginEmail">
+                    Email
+                </label>
+
+                <input
+                    type="email"
+                    id="loginEmail"
+                    placeholder="you@example.com"
+                >
+
+
+                <label for="loginPassword">
+                    Password
+                </label>
+
+                <input
+                    type="password"
+                    id="loginPassword"
+                    placeholder="Enter your password"
+                >
+
+
+                <button
+                    class="primary-button"
+                    onclick="loginUser()"
+                >
+                    Login
+                </button>
+
+
+                <div
+                    id="loginMessage"
+                    class="message"
+                ></div>
+
+            </div>
+
+
+            <!-- REGISTER -->
+
+            <div
+                class="form-section hidden"
+                id="registerForm"
+            >
+
+                <h2>Create your business account</h2>
+
+                <p class="form-description">
+                    Create a secure workspace for your business.
+                </p>
+
+
+                <label for="registerName">
+                    Owner Name
+                </label>
+
+                <input
+                    type="text"
+                    id="registerName"
+                    placeholder="Your full name"
+                >
+
+
+                <label for="businessName">
+                    Business Name
+                </label>
+
+                <input
+                    type="text"
+                    id="businessName"
+                    placeholder="Your business name"
+                >
+
+
+                <label for="registerEmail">
+                    Email
+                </label>
+
+                <input
+                    type="email"
+                    id="registerEmail"
+                    placeholder="you@example.com"
+                >
+
+
+                <label for="registerPhone">
+                    Phone
+                </label>
+
+                <input
+                    type="text"
+                    id="registerPhone"
+                    placeholder="Optional"
+                >
+
+
+                <label for="registerPassword">
+                    Password
+                </label>
+
+                <input
+                    type="password"
+                    id="registerPassword"
+                    placeholder="Create a password"
+                >
+
+
+                <button
+                    class="primary-button"
+                    onclick="registerUser()"
+                >
+                    Create Account
+                </button>
+
+
+                <div
+                    id="registerMessage"
+                    class="message"
+                ></div>
+
+            </div>
+
+        </div>
+
+
+        <div class="footer">
+            AI Business Agent
+        </div>
+
+    </div>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>
