@@ -1,6 +1,6 @@
 const BACKEND_URL =
-    "https://ai-business-agent-eq5b-37myy2jomv-sameerbhorania486.vercel.app";
-
+    "https://ai-business-agent-sm7c.vercel.app";
+    
 function showLogin() {
     const loginSection = document.getElementById("loginSection");
     const registerSection = document.getElementById("registerSection");
