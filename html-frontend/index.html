@@ -11,184 +11,378 @@
 
 <body>
 
-    <div class="auth-container">
+    <div class="auth-page">
 
-        <div class="brand">
-            <div class="brand-icon">🤖</div>
+        <!-- LEFT BRANDING PANEL -->
+        <section class="auth-brand">
 
-            <h1>AI Business Agent</h1>
+            <div class="brand-content">
 
-            <p>
-                Intelligent business management powered by AI
-            </p>
-        </div>
+                <div class="brand-logo">
+                    <div class="brand-icon">✦</div>
 
+                    <div>
+                        <div class="brand-name">
+                            AI Business Agent
+                        </div>
 
-        <div class="auth-card">
+                        <div class="brand-small">
+                            Intelligent Business Platform
+                        </div>
+                    </div>
+                </div>
 
-            <div class="tabs">
+                <div class="brand-main">
 
-                <button
-                    class="tab active"
-                    onclick="showLogin()"
-                    id="loginTab"
-                >
-                    Login
-                </button>
+                    <div class="brand-badge">
+                        <span class="brand-badge-dot"></span>
+                        AI-powered business management
+                    </div>
 
-                <button
-                    class="tab"
-                    onclick="showRegister()"
-                    id="registerTab"
-                >
-                    Create Account
-                </button>
+                    <h1>
+                        Run your business
+                        <span>smarter.</span>
+                    </h1>
+
+                    <p>
+                        Manage customers, orders, inventory and
+                        business insights from one intelligent
+                        workspace.
+                    </p>
+
+                    <div class="feature-list">
+
+                        <div class="feature-item">
+                            <div class="feature-icon">✓</div>
+
+                            <div>
+                                <strong>Customer Management</strong>
+                                <small>
+                                    Keep your customer information organized.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="feature-item">
+                            <div class="feature-icon">✓</div>
+
+                            <div>
+                                <strong>Orders & Inventory</strong>
+                                <small>
+                                    Track orders, products and stock easily.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="feature-item">
+                            <div class="feature-icon">✓</div>
+
+                            <div>
+                                <strong>AI Business Assistant</strong>
+                                <small>
+                                    Ask questions and get insights from your data.
+                                </small>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="brand-footer">
+                    <span>Secure workspace</span>
+                    <span>•</span>
+                    <span>AI powered</span>
+                    <span>•</span>
+                    <span>Built for businesses</span>
+                </div>
 
             </div>
 
-
-            <!-- LOGIN -->
-
-            <div
-                class="form-section"
-                id="loginForm"
-            >
-
-                <h2>Welcome back</h2>
-
-                <p class="form-description">
-                    Sign in to access your business workspace.
-                </p>
+        </section>
 
 
-                <label for="loginEmail">
-                    Email
-                </label>
+        <!-- RIGHT AUTH PANEL -->
+        <section class="auth-panel">
 
-                <input
-                    type="email"
-                    id="loginEmail"
-                    placeholder="you@example.com"
-                >
+            <div class="auth-card">
+
+                <div class="mobile-brand">
+                    <div class="mobile-brand-icon">✦</div>
+                    <span>AI Business Agent</span>
+                </div>
+
+                <!-- TABS -->
+                <div class="auth-tabs">
+
+                    <button
+                        id="loginTab"
+                        class="auth-tab active"
+                        onclick="showLogin()"
+                    >
+                        Login
+                    </button>
+
+                    <button
+                        id="registerTab"
+                        class="auth-tab"
+                        onclick="showRegister()"
+                    >
+                        Create Account
+                    </button>
+
+                </div>
 
 
-                <label for="loginPassword">
-                    Password
-                </label>
+                <!-- LOGIN -->
+                <div id="loginSection" class="auth-section">
 
-                <input
-                    type="password"
-                    id="loginPassword"
-                    placeholder="Enter your password"
-                >
+                    <div class="auth-heading">
 
+                        <h2>
+                            Welcome back
+                        </h2>
 
-                <button
-                    class="primary-button"
-                    onclick="loginUser()"
-                >
-                    Login
-                </button>
+                        <p>
+                            Sign in to access your business workspace.
+                        </p>
+
+                    </div>
 
 
+                    <form onsubmit="loginUser(event)">
+
+                        <div class="form-group">
+
+                            <label for="loginEmail">
+                                Email
+                            </label>
+
+                            <input
+                                id="loginEmail"
+                                type="email"
+                                placeholder="you@example.com"
+                                autocomplete="email"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <div class="password-label">
+
+                                <label for="loginPassword">
+                                    Password
+                                </label>
+
+                            </div>
+
+                            <input
+                                id="loginPassword"
+                                type="password"
+                                placeholder="Enter your password"
+                                autocomplete="current-password"
+                                required
+                            >
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="auth-button"
+                        >
+                            <span>Login</span>
+                            <span class="button-arrow">→</span>
+                        </button>
+
+                    </form>
+
+
+                    <div
+                        id="loginMessage"
+                        class="auth-message"
+                    ></div>
+
+
+                    <div class="auth-footer-text">
+
+                        Don't have an account?
+
+                        <button
+                            onclick="showRegister()"
+                            class="text-button"
+                        >
+                            Create one
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- REGISTER -->
                 <div
-                    id="loginMessage"
-                    class="message"
-                ></div>
+                    id="registerSection"
+                    class="auth-section hidden"
+                >
+
+                    <div class="auth-heading">
+
+                        <h2>
+                            Create your account
+                        </h2>
+
+                        <p>
+                            Set up your business workspace in minutes.
+                        </p>
+
+                    </div>
+
+
+                    <form onsubmit="registerUser(event)">
+
+                        <div class="form-group">
+
+                            <label for="registerName">
+                                Owner Name
+                            </label>
+
+                            <input
+                                id="registerName"
+                                type="text"
+                                placeholder="Your full name"
+                                autocomplete="name"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="registerBusiness">
+                                Business Name
+                            </label>
+
+                            <input
+                                id="registerBusiness"
+                                type="text"
+                                placeholder="Your business name"
+                                autocomplete="organization"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="registerEmail">
+                                Email
+                            </label>
+
+                            <input
+                                id="registerEmail"
+                                type="email"
+                                placeholder="you@example.com"
+                                autocomplete="email"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="registerPhone">
+                                Phone
+                                <span class="optional">
+                                    Optional
+                                </span>
+                            </label>
+
+                            <input
+                                id="registerPhone"
+                                type="tel"
+                                placeholder="Phone number"
+                                autocomplete="tel"
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="registerPassword">
+                                Password
+                            </label>
+
+                            <input
+                                id="registerPassword"
+                                type="password"
+                                placeholder="Create a password"
+                                autocomplete="new-password"
+                                minlength="8"
+                                required
+                            >
+
+                            <div class="password-hint">
+                                Minimum 8 characters
+                            </div>
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="auth-button"
+                        >
+                            <span>Create Account</span>
+                            <span class="button-arrow">→</span>
+                        </button>
+
+                    </form>
+
+
+                    <div
+                        id="registerMessage"
+                        class="auth-message"
+                    ></div>
+
+
+                    <div class="auth-footer-text">
+
+                        Already have an account?
+
+                        <button
+                            onclick="showLogin()"
+                            class="text-button"
+                        >
+                            Sign in
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="security-note">
+
+                    <span class="security-icon">🔒</span>
+
+                    <span>
+                        Your business data is protected with
+                        secure authentication.
+                    </span>
+
+                </div>
 
             </div>
 
-
-            <!-- REGISTER -->
-
-            <div
-                class="form-section hidden"
-                id="registerForm"
-            >
-
-                <h2>Create your business account</h2>
-
-                <p class="form-description">
-                    Create a secure workspace for your business.
-                </p>
-
-
-                <label for="registerName">
-                    Owner Name
-                </label>
-
-                <input
-                    type="text"
-                    id="registerName"
-                    placeholder="Your full name"
-                >
-
-
-                <label for="businessName">
-                    Business Name
-                </label>
-
-                <input
-                    type="text"
-                    id="businessName"
-                    placeholder="Your business name"
-                >
-
-
-                <label for="registerEmail">
-                    Email
-                </label>
-
-                <input
-                    type="email"
-                    id="registerEmail"
-                    placeholder="you@example.com"
-                >
-
-
-                <label for="registerPhone">
-                    Phone
-                </label>
-
-                <input
-                    type="text"
-                    id="registerPhone"
-                    placeholder="Optional"
-                >
-
-
-                <label for="registerPassword">
-                    Password
-                </label>
-
-                <input
-                    type="password"
-                    id="registerPassword"
-                    placeholder="Create a password"
-                >
-
-
-                <button
-                    class="primary-button"
-                    onclick="registerUser()"
-                >
-                    Create Account
-                </button>
-
-
-                <div
-                    id="registerMessage"
-                    class="message"
-                ></div>
-
-            </div>
-
-        </div>
-
-
-        <div class="footer">
-            AI Business Agent
-        </div>
+        </section>
 
     </div>
 
