@@ -1,13 +1,9 @@
-// =========================================================
-// BACKEND CONFIGURATION
-// =========================================================
-
 const BACKEND_URL =
     "https://ai-business-agent-iga7qjvqc-sameerbhorania486.vercel.app";
 
 
 // =========================================================
-// TAB SWITCHING
+// LOGIN / REGISTER TAB
 // =========================================================
 
 function showLogin() {
@@ -24,7 +20,6 @@ function showLogin() {
     const registerTab =
         document.getElementById("registerTab");
 
-
     if (!loginSection || !registerSection) {
 
         console.error(
@@ -32,28 +27,19 @@ function showLogin() {
         );
 
         return;
-
     }
-
 
     loginSection.classList.remove("hidden");
 
     registerSection.classList.add("hidden");
 
-
     if (loginTab) {
-
         loginTab.classList.add("active");
-
     }
-
 
     if (registerTab) {
-
         registerTab.classList.remove("active");
-
     }
-
 }
 
 
@@ -71,7 +57,6 @@ function showRegister() {
     const registerTab =
         document.getElementById("registerTab");
 
-
     if (!loginSection || !registerSection) {
 
         console.error(
@@ -79,33 +64,24 @@ function showRegister() {
         );
 
         return;
-
     }
-
 
     registerSection.classList.remove("hidden");
 
     loginSection.classList.add("hidden");
 
-
     if (registerTab) {
-
         registerTab.classList.add("active");
-
     }
-
 
     if (loginTab) {
-
         loginTab.classList.remove("active");
-
     }
-
 }
 
 
 // =========================================================
-// API ERROR HANDLER
+// API ERROR
 // =========================================================
 
 async function getApiError(
@@ -124,22 +100,18 @@ async function getApiError(
             defaultMessage
         );
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         return (
             response.statusText ||
             defaultMessage
         );
-
     }
-
 }
 
 
 // =========================================================
-// MESSAGE HELPER
+// MESSAGE
 // =========================================================
 
 function showMessage(
@@ -155,44 +127,33 @@ function showMessage(
         );
 
         return;
-
     }
 
-
-    element.textContent =
-        message;
-
+    element.textContent = message;
 
     element.className =
         "auth-message";
-
 
     if (type === "error") {
 
         element.classList.add(
             "error"
         );
-
     }
-
 
     if (type === "success") {
 
         element.classList.add(
             "success"
         );
-
     }
-
 
     if (type === "loading") {
 
         element.classList.add(
             "loading"
         );
-
     }
-
 }
 
 
@@ -202,15 +163,10 @@ function showMessage(
 
 async function loginUser(event) {
 
-    // Prevent browser from submitting
-    // the form normally.
-
     if (event) {
 
         event.preventDefault();
-
     }
-
 
     const emailInput =
         document.getElementById(
@@ -227,7 +183,6 @@ async function loginUser(event) {
             "loginMessage"
         );
 
-
     if (!emailInput || !passwordInput) {
 
         console.error(
@@ -235,9 +190,7 @@ async function loginUser(event) {
         );
 
         return;
-
     }
-
 
     const email =
         emailInput.value
@@ -246,11 +199,6 @@ async function loginUser(event) {
 
     const password =
         passwordInput.value;
-
-
-    // -----------------------------------------------------
-    // VALIDATION
-    // -----------------------------------------------------
 
     if (!email) {
 
@@ -261,9 +209,7 @@ async function loginUser(event) {
         );
 
         return;
-
     }
-
 
     if (!password) {
 
@@ -274,16 +220,13 @@ async function loginUser(event) {
         );
 
         return;
-
     }
-
 
     showMessage(
         messageElement,
         "Signing in...",
         "loading"
     );
-
 
     try {
 
@@ -305,7 +248,6 @@ async function loginUser(event) {
                 }
             );
 
-
         if (!response.ok) {
 
             const errorMessage =
@@ -314,7 +256,6 @@ async function loginUser(event) {
                     "Invalid email or password."
                 );
 
-
             showMessage(
                 messageElement,
                 errorMessage,
@@ -322,19 +263,15 @@ async function loginUser(event) {
             );
 
             return;
-
         }
-
 
         const data =
             await response.json();
-
 
         console.log(
             "LOGIN RESPONSE:",
             data
         );
-
 
         if (!data.access_token) {
 
@@ -345,40 +282,23 @@ async function loginUser(event) {
             );
 
             return;
-
         }
-
-
-        // -------------------------------------------------
-        // SAVE JWT
-        // -------------------------------------------------
 
         localStorage.setItem(
             "access_token",
             data.access_token
         );
 
-
-        // -------------------------------------------------
-        // SAVE EMAIL
-        // -------------------------------------------------
-
         localStorage.setItem(
             "user_email",
             email
         );
-
 
         showMessage(
             messageElement,
             "Login successful. Opening dashboard...",
             "success"
         );
-
-
-        // -------------------------------------------------
-        // REDIRECT
-        // -------------------------------------------------
 
         setTimeout(
             () => {
@@ -390,24 +310,19 @@ async function loginUser(event) {
             700
         );
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.error(
             "LOGIN ERROR:",
             error
         );
 
-
         showMessage(
             messageElement,
             "Unable to connect to the backend. Please try again.",
             "error"
         );
-
     }
-
 }
 
 
@@ -417,15 +332,10 @@ async function loginUser(event) {
 
 async function registerUser(event) {
 
-    // Prevent browser from submitting
-    // the form normally.
-
     if (event) {
 
         event.preventDefault();
-
     }
-
 
     const nameInput =
         document.getElementById(
@@ -457,7 +367,6 @@ async function registerUser(event) {
             "registerMessage"
         );
 
-
     if (
         !nameInput ||
         !businessInput ||
@@ -470,9 +379,7 @@ async function registerUser(event) {
         );
 
         return;
-
     }
-
 
     const name =
         nameInput.value.trim();
@@ -493,11 +400,6 @@ async function registerUser(event) {
     const password =
         passwordInput.value;
 
-
-    // -----------------------------------------------------
-    // VALIDATION
-    // -----------------------------------------------------
-
     if (!name) {
 
         showMessage(
@@ -507,9 +409,7 @@ async function registerUser(event) {
         );
 
         return;
-
     }
-
 
     if (!businessName) {
 
@@ -520,9 +420,7 @@ async function registerUser(event) {
         );
 
         return;
-
     }
-
 
     if (!email) {
 
@@ -533,9 +431,7 @@ async function registerUser(event) {
         );
 
         return;
-
     }
-
 
     if (!password) {
 
@@ -546,9 +442,7 @@ async function registerUser(event) {
         );
 
         return;
-
     }
-
 
     if (password.length < 6) {
 
@@ -559,16 +453,13 @@ async function registerUser(event) {
         );
 
         return;
-
     }
-
 
     showMessage(
         messageElement,
         "Creating your account...",
         "loading"
     );
-
 
     try {
 
@@ -594,7 +485,6 @@ async function registerUser(event) {
                 }
             );
 
-
         if (!response.ok) {
 
             const errorMessage =
@@ -603,7 +493,6 @@ async function registerUser(event) {
                     "Registration failed."
                 );
 
-
             showMessage(
                 messageElement,
                 errorMessage,
@@ -611,30 +500,21 @@ async function registerUser(event) {
             );
 
             return;
-
         }
-
 
         const data =
             await response.json();
-
 
         console.log(
             "REGISTER RESPONSE:",
             data
         );
 
-
         showMessage(
             messageElement,
             "Account created successfully. Please login.",
             "success"
         );
-
-
-        // -------------------------------------------------
-        // CLEAR FORM
-        // -------------------------------------------------
 
         nameInput.value = "";
 
@@ -645,15 +525,9 @@ async function registerUser(event) {
         if (phoneInput) {
 
             phoneInput.value = "";
-
         }
 
         passwordInput.value = "";
-
-
-        // -------------------------------------------------
-        // SWITCH TO LOGIN
-        // -------------------------------------------------
 
         setTimeout(
             () => {
@@ -664,29 +538,24 @@ async function registerUser(event) {
             1200
         );
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.error(
             "REGISTER ERROR:",
             error
         );
 
-
         showMessage(
             messageElement,
             "Unable to connect to the backend. Please try again.",
             "error"
         );
-
     }
-
 }
 
 
 // =========================================================
-// LOGOUT
+// AUTH / LOGOUT
 // =========================================================
 
 function logout() {
@@ -699,35 +568,23 @@ function logout() {
         "user_email"
     );
 
-
     window.location.href =
         "index.html";
-
 }
 
-
-// =========================================================
-// TOKEN HELPER
-// =========================================================
 
 function getToken() {
 
     return localStorage.getItem(
         "access_token"
     );
-
 }
 
-
-// =========================================================
-// API HEADERS
-// =========================================================
 
 function apiHeaders() {
 
     const token =
         getToken();
-
 
     return {
 
@@ -736,22 +593,15 @@ function apiHeaders() {
 
         "Authorization":
             `Bearer ${token}`
-
     };
-
 }
 
-
-// =========================================================
-// LOGIN STATUS
-// =========================================================
 
 function isLoggedIn() {
 
     return Boolean(
         getToken()
     );
-
 }
 
 
@@ -771,6 +621,5 @@ document.addEventListener(
             "Backend:",
             BACKEND_URL
         );
-
     }
 );
