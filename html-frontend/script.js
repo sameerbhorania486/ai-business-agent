@@ -1,169 +1,296 @@
-// =========================================
+// =========================================================
 // BACKEND CONFIGURATION
-// =========================================
+// =========================================================
 
-const BACKEND_URL = "https://ai-business-agent-iga7qjvqc-sameerbhorania486.vercel.app";
+const BACKEND_URL =
+    "https://ai-business-agent-iga7qjvqc-sameerbhorania486.vercel.app";
 
-// =========================================
+
+// =========================================================
 // TAB SWITCHING
-// =========================================
+// =========================================================
 
 function showLogin() {
 
-    document
-        .getElementById("loginForm")
-        .classList.remove("hidden");
+    const loginSection =
+        document.getElementById("loginSection");
 
-    document
-        .getElementById("registerForm")
-        .classList.add("hidden");
+    const registerSection =
+        document.getElementById("registerSection");
 
-    document
-        .getElementById("loginTab")
-        .classList.add("active");
+    const loginTab =
+        document.getElementById("loginTab");
 
-    document
-        .getElementById("registerTab")
-        .classList.remove("active");
+    const registerTab =
+        document.getElementById("registerTab");
+
+
+    if (loginSection) {
+
+        loginSection.classList.remove("hidden");
+
+    }
+
+    if (registerSection) {
+
+        registerSection.classList.add("hidden");
+
+    }
+
+    if (loginTab) {
+
+        loginTab.classList.add("active");
+
+    }
+
+    if (registerTab) {
+
+        registerTab.classList.remove("active");
+
+    }
 }
 
 
 function showRegister() {
 
-    document
-        .getElementById("registerForm")
-        .classList.remove("hidden");
+    const loginSection =
+        document.getElementById("loginSection");
 
-    document
-        .getElementById("loginForm")
-        .classList.add("hidden");
+    const registerSection =
+        document.getElementById("registerSection");
 
-    document
-        .getElementById("registerTab")
-        .classList.add("active");
+    const loginTab =
+        document.getElementById("loginTab");
 
-    document
-        .getElementById("loginTab")
-        .classList.remove("active");
+    const registerTab =
+        document.getElementById("registerTab");
+
+
+    if (registerSection) {
+
+        registerSection.classList.remove("hidden");
+
+    }
+
+    if (loginSection) {
+
+        loginSection.classList.add("hidden");
+
+    }
+
+    if (registerTab) {
+
+        registerTab.classList.add("active");
+
+    }
+
+    if (loginTab) {
+
+        loginTab.classList.remove("active");
+
+    }
 }
 
 
-// =========================================
-// MESSAGE HELPER
-// =========================================
+// =========================================================
+// API ERROR HANDLER
+// =========================================================
 
-function showMessage(
-    elementId,
-    message,
-    type
-) {
+async function getApiError(response, defaultMessage) {
 
-    const element =
-        document.getElementById(elementId);
+    try {
 
-    element.textContent = message;
+        const data = await response.json();
 
-    element.className =
-        `message ${type}`;
+        return (
+            data.detail ||
+            data.message ||
+            defaultMessage
+        );
+
+    } catch (error) {
+
+        return (
+            response.statusText ||
+            defaultMessage
+        );
+
+    }
 }
 
 
-// =========================================
+// =========================================================
 // LOGIN
-// =========================================
+// =========================================================
 
-async function loginUser() {
+async function loginUser(event) {
+
+    // IMPORTANT:
+    // Prevent normal HTML form submission.
+    // Without this, browser can reload index.html.
+
+    if (event) {
+
+        event.preventDefault();
+
+    }
+
+
+    const emailInput =
+        document.getElementById("loginEmail");
+
+    const passwordInput =
+        document.getElementById("loginPassword");
+
+    const messageElement =
+        document.getElementById("loginMessage");
+
+
+    if (!emailInput || !passwordInput) {
+
+        console.error(
+            "Login input elements not found."
+        );
+
+        return;
+
+    }
+
 
     const email =
-        document
-            .getElementById("loginEmail")
-            .value
-            .trim()
-            .toLowerCase();
+        emailInput.value.trim().toLowerCase();
 
     const password =
-        document
-            .getElementById("loginPassword")
-            .value;
+        passwordInput.value;
 
 
-    if (!email || !password) {
+    // -----------------------------------------------------
+    // VALIDATION
+    // -----------------------------------------------------
+
+    if (!email) {
 
         showMessage(
-            "loginMessage",
-            "Please enter your email and password.",
+            messageElement,
+            "Please enter your email.",
             "error"
         );
 
         return;
+
     }
+
+
+    if (!password) {
+
+        showMessage(
+            messageElement,
+            "Please enter your password.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    // -----------------------------------------------------
+    // LOADING MESSAGE
+    // -----------------------------------------------------
+
+    showMessage(
+        messageElement,
+        "Signing in...",
+        "loading"
+    );
 
 
     try {
 
-        showMessage(
-            "loginMessage",
-            "Signing in...",
-            "success"
+        // -------------------------------------------------
+        // LOGIN API REQUEST
+        // -------------------------------------------------
+
+        const response = await fetch(
+            `${BACKEND_URL}/login`,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+                    email: email,
+                    password: password
+                })
+            }
         );
 
 
-        const response =
-            await fetch(
-                `${BACKEND_URL}/login`,
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body: JSON.stringify({
-                        email: email,
-                        password: password
-                    })
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-            console.log("REGISTER RESPONSE:", data);
+        // -------------------------------------------------
+        // HANDLE LOGIN ERROR
+        // -------------------------------------------------
 
         if (!response.ok) {
 
             const errorMessage =
-                data.detail ||
-                data.message ||
-                "Login failed.";
+                await getApiError(
+                    response,
+                    "Invalid email or password."
+                );
 
             showMessage(
-                "loginMessage",
+                messageElement,
                 errorMessage,
                 "error"
             );
 
             return;
+
         }
 
+
+        // -------------------------------------------------
+        // LOGIN RESPONSE
+        // -------------------------------------------------
+
+        const data =
+            await response.json();
+
+
+        console.log(
+            "LOGIN RESPONSE:",
+            data
+        );
+
+
+        // -------------------------------------------------
+        // CHECK TOKEN
+        // -------------------------------------------------
 
         if (!data.access_token) {
 
             showMessage(
-                "loginMessage",
-                "Login succeeded but no access token was returned.",
+                messageElement,
+                "Login succeeded, but no access token was received.",
                 "error"
             );
 
+            console.error(
+                "No access_token in login response:",
+                data
+            );
+
             return;
+
         }
 
 
-        // -----------------------------------------
+        // -------------------------------------------------
         // SAVE JWT TOKEN
-        // -----------------------------------------
+        // -------------------------------------------------
 
         localStorage.setItem(
             "access_token",
@@ -171,9 +298,9 @@ async function loginUser() {
         );
 
 
-        // -----------------------------------------
+        // -------------------------------------------------
         // SAVE USER EMAIL
-        // -----------------------------------------
+        // -------------------------------------------------
 
         localStorage.setItem(
             "user_email",
@@ -181,244 +308,467 @@ async function loginUser() {
         );
 
 
+        // -------------------------------------------------
+        // SUCCESS
+        // -------------------------------------------------
+
         showMessage(
-            "loginMessage",
-            "Login successful. Redirecting...",
+            messageElement,
+            "Login successful. Opening dashboard...",
             "success"
         );
 
 
-        // -----------------------------------------
-        // TEMPORARY DASHBOARD REDIRECT
-        // -----------------------------------------
+        // -------------------------------------------------
+        // REDIRECT TO DASHBOARD
+        // -------------------------------------------------
 
-        setTimeout(
-            () => {
+        setTimeout(() => {
 
-               window.location.href = "dashboard.html";
+            window.location.href =
+                "dashboard.html";
 
-            },
-            700
+        }, 700);
+
+
+    } catch (error) {
+
+        console.error(
+            "LOGIN ERROR:",
+            error
         );
 
-    }
-
-    catch (error) {
-
-        console.error(error);
 
         showMessage(
-            "loginMessage",
-            "Unable to connect to backend.",
+            messageElement,
+            "Unable to connect to the backend. Please try again.",
             "error"
         );
+
     }
+
 }
 
 
-// =========================================
+// =========================================================
 // REGISTER
-// =========================================
+// =========================================================
 
-async function registerUser() {
+async function registerUser(event) {
+
+    // IMPORTANT:
+    // Prevent normal HTML form submission.
+
+    if (event) {
+
+        event.preventDefault();
+
+    }
+
+
+    const nameInput =
+        document.getElementById("registerName");
+
+    const businessInput =
+        document.getElementById("registerBusiness");
+
+    const emailInput =
+        document.getElementById("registerEmail");
+
+    const phoneInput =
+        document.getElementById("registerPhone");
+
+    const passwordInput =
+        document.getElementById("registerPassword");
+
+    const messageElement =
+        document.getElementById("registerMessage");
+
+
+    if (
+        !nameInput ||
+        !businessInput ||
+        !emailInput ||
+        !passwordInput
+    ) {
+
+        console.error(
+            "Registration input elements not found."
+        );
+
+        return;
+
+    }
+
 
     const name =
-        document
-            .getElementById("registerName")
-            .value
-            .trim();
-
+        nameInput.value.trim();
 
     const businessName =
-        document
-            .getElementById("businessName")
-            .value
-            .trim();
-
+        businessInput.value.trim();
 
     const email =
-        document
-            .getElementById("registerEmail")
-            .value
-            .trim()
-            .toLowerCase();
-
+        emailInput.value.trim().toLowerCase();
 
     const phone =
-        document
-            .getElementById("registerPhone")
-            .value
-            .trim();
-
+        phoneInput
+            ? phoneInput.value.trim()
+            : "";
 
     const password =
-        document
-            .getElementById("registerPassword")
-            .value;
+        passwordInput.value;
 
+
+    // -----------------------------------------------------
+    // VALIDATION
+    // -----------------------------------------------------
 
     if (!name) {
 
         showMessage(
-            "registerMessage",
-            "Please enter owner name.",
+            messageElement,
+            "Please enter your name.",
             "error"
         );
 
         return;
+
     }
 
 
     if (!businessName) {
 
         showMessage(
-            "registerMessage",
-            "Please enter business name.",
+            messageElement,
+            "Please enter your business name.",
             "error"
         );
 
         return;
+
     }
 
 
     if (!email) {
 
         showMessage(
-            "registerMessage",
-            "Please enter email.",
+            messageElement,
+            "Please enter your email.",
             "error"
         );
 
         return;
+
     }
 
 
     if (!password) {
 
         showMessage(
-            "registerMessage",
+            messageElement,
             "Please create a password.",
             "error"
         );
 
         return;
+
     }
+
+
+    if (password.length < 6) {
+
+        showMessage(
+            messageElement,
+            "Password should be at least 6 characters.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    // -----------------------------------------------------
+    // LOADING
+    // -----------------------------------------------------
+
+    showMessage(
+        messageElement,
+        "Creating your account...",
+        "loading"
+    );
 
 
     try {
 
-        showMessage(
-            "registerMessage",
-            "Creating your account...",
-            "success"
+        // -------------------------------------------------
+        // REGISTER API REQUEST
+        // -------------------------------------------------
+
+        const response = await fetch(
+            `${BACKEND_URL}/register`,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+                    name: name,
+                    email: email,
+                    password: password,
+                    business_name: businessName,
+                    phone: phone
+                })
+            }
         );
 
 
-        const response =
-            await fetch(
-                `${BACKEND_URL}/register`,
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body: JSON.stringify({
-
-                        name: name,
-
-                        email: email,
-
-                        password: password,
-
-                        business_name:
-                            businessName,
-
-                        phone: phone
-
-                    })
-                }
-            );
-
-
-        const data =
-            await response.json();
-
+        // -------------------------------------------------
+        // HANDLE REGISTRATION ERROR
+        // -------------------------------------------------
 
         if (!response.ok) {
 
             const errorMessage =
-                data.detail ||
-                data.message ||
-                "Registration failed.";
+                await getApiError(
+                    response,
+                    "Registration failed."
+                );
 
             showMessage(
-                "registerMessage",
+                messageElement,
                 errorMessage,
                 "error"
             );
 
             return;
+
         }
 
 
+        // -------------------------------------------------
+        // REGISTER RESPONSE
+        // -------------------------------------------------
+
+        const data =
+            await response.json();
+
+
+        console.log(
+            "REGISTER RESPONSE:",
+            data
+        );
+
+
+        // -------------------------------------------------
+        // SUCCESS
+        // -------------------------------------------------
+
         showMessage(
-            "registerMessage",
-            "Account created successfully. You can now login.",
+            messageElement,
+            "Account created successfully. Please login.",
             "success"
         );
 
 
-        // -----------------------------------------
+        // -------------------------------------------------
         // CLEAR FORM
-        // -----------------------------------------
+        // -------------------------------------------------
 
-        document
-            .getElementById("registerName")
-            .value = "";
+        nameInput.value = "";
 
-        document
-            .getElementById("businessName")
-            .value = "";
+        businessInput.value = "";
 
-        document
-            .getElementById("registerEmail")
-            .value = "";
+        emailInput.value = "";
 
-        document
-            .getElementById("registerPhone")
-            .value = "";
+        if (phoneInput) {
 
-        document
-            .getElementById("registerPassword")
-            .value = "";
+            phoneInput.value = "";
+
+        }
+
+        passwordInput.value = "";
 
 
-        // -----------------------------------------
-        // SWITCH TO LOGIN
-        // -----------------------------------------
+        // -------------------------------------------------
+        // GO TO LOGIN
+        // -------------------------------------------------
 
-        setTimeout(
-            () => {
+        setTimeout(() => {
 
-                showLogin();
+            showLogin();
 
-            },
-            1200
+        }, 1200);
+
+
+    } catch (error) {
+
+        console.error(
+            "REGISTER ERROR:",
+            error
         );
 
-    }
-
-    catch (error) {
-
-        console.error(error);
 
         showMessage(
-            "registerMessage",
-            "Unable to connect to backend.",
+            messageElement,
+            "Unable to connect to the backend. Please try again.",
             "error"
         );
+
     }
+
 }
+
+
+// =========================================================
+// MESSAGE HELPER
+// =========================================================
+
+function showMessage(
+    element,
+    message,
+    type
+) {
+
+    if (!element) {
+
+        console.log(
+            `[${type}] ${message}`
+        );
+
+        return;
+
+    }
+
+
+    element.textContent =
+        message;
+
+
+    element.className =
+        "auth-message";
+
+
+    if (type === "error") {
+
+        element.classList.add(
+            "error"
+        );
+
+    }
+
+
+    if (type === "success") {
+
+        element.classList.add(
+            "success"
+        );
+
+    }
+
+
+    if (type === "loading") {
+
+        element.classList.add(
+            "loading"
+        );
+
+    }
+
+}
+
+
+// =========================================================
+// LOGOUT
+// =========================================================
+
+function logout() {
+
+    localStorage.removeItem(
+        "access_token"
+    );
+
+    localStorage.removeItem(
+        "user_email"
+    );
+
+
+    window.location.href =
+        "index.html";
+
+}
+
+
+// =========================================================
+// GET SAVED TOKEN
+// =========================================================
+
+function getToken() {
+
+    return localStorage.getItem(
+        "access_token"
+    );
+
+}
+
+
+// =========================================================
+// AUTHORIZATION HEADERS
+// =========================================================
+
+function apiHeaders() {
+
+    const token =
+        getToken();
+
+
+    return {
+
+        "Content-Type":
+            "application/json",
+
+        "Authorization":
+            `Bearer ${token}`
+
+    };
+
+}
+
+
+// =========================================================
+// CHECK LOGIN STATUS
+// =========================================================
+
+function isLoggedIn() {
+
+    const token =
+        getToken();
+
+
+    return Boolean(token);
+
+}
+
+
+// =========================================================
+// AUTO INITIALIZATION
+// =========================================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        console.log(
+            "AI Business Agent frontend loaded."
+        );
+
+        console.log(
+            "Backend:",
+            BACKEND_URL
+        );
+
+    }
+);
